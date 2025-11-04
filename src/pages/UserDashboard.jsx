@@ -169,6 +169,8 @@ const UserDashboard = () => {
   const [userTranscripts, setUserTranscripts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [priceEstimate, setPriceEstimate] = useState(null);
 
   const navigate = useNavigate();
   const { user, logout, getAuthHeaders } = useAuth();
@@ -200,31 +202,88 @@ const UserDashboard = () => {
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
-    
-    // Validate file type
-    const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/aac', 'audio/flac'];
-    if (file && !allowedTypes.includes(file.type)) {
-      alert('Please select a valid audio file (MP3, WAV, M4A, AAC, FLAC)');
+
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
+
+    // Validate file type - check by extension (more reliable than MIME type)
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'mp4', 'mpeg', 'ogg'];
+
+    if (!allowedExtensions.includes(fileExtension)) {
+      alert(`Invalid file type. Please select an audio file (${allowedExtensions.join(', ').toUpperCase()})`);
+      e.target.value = ''; // Reset input
       return;
     }
 
     // Validate file size (2GB limit)
-    if (file && file.size > 2 * 1024 * 1024 * 1024) {
+    if (file.size > 2 * 1024 * 1024 * 1024) {
       alert('File size must be less than 2GB');
+      e.target.value = ''; // Reset input
       return;
     }
 
+    console.log('File validation passed');
     setSelectedFile(file);
     setUploadProgress(0);
+
+    // Get audio duration
+    if (file) {
+      const audio = new Audio();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        audio.src = e.target.result;
+
+        audio.addEventListener('loadedmetadata', () => {
+          const durationInMinutes = Math.ceil(audio.duration / 60);
+          setAudioDuration(durationInMinutes);
+
+          // Calculate price estimate with default settings
+          calculatePriceEstimate(durationInMinutes);
+        });
+
+        audio.addEventListener('error', () => {
+          console.error('Could not load audio file for duration detection');
+          // Set a default duration or prompt user to enter manually
+          setAudioDuration(0);
+          setPriceEstimate(null);
+        });
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const calculatePriceEstimate = (duration) => {
+    // Default settings: 2 speakers, 3 days turnaround, speaker change timestamp, no verbatim
+    const baseRate = 0.9; // 3 days
+    const speakerMod = 0.3; // 2 speakers
+    const timestampMod = 0.3; // speaker change
+
+    const rate = baseRate + speakerMod + timestampMod;
+    const estimatedPrice = duration * rate;
+
+    setPriceEstimate({
+      duration,
+      rate: rate.toFixed(2),
+      price: estimatedPrice.toFixed(2),
+      settings: '2 speakers, 3 days, speaker timestamps'
+    });
   };
 
   const handleUpload = () => {
     if (!selectedFile) return;
-    
-    // First navigate to pricing calculator to create order
+
+    // Navigate to checkout with file and duration info
     navigate('/checkout', {
       state: {
         file: selectedFile,
+        audioDuration: audioDuration || 60, // Default to 60 if detection failed
         fromUpload: true
       }
     });
@@ -294,8 +353,8 @@ const UserDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <FileText className="h-6 w-6 text-purple-600" />
-              <span className="text-xl font-bold text-purple-600">TrustyTranscript</span>
+              <FileText className="h-6 w-6 text-[#006D5B]" />
+              <span className="text-xl font-bold text-[#006D5B]">ZenTranscript</span>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">
@@ -327,14 +386,14 @@ const UserDashboard = () => {
             </p>
             <input
               type="file"
-              accept=".mp3,.wav,.m4a,.aac,.flac"
+              accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.mpeg,.ogg"
               onChange={handleFileSelect}
               className="hidden"
               id="file-upload"
             />
             <label
               htmlFor="file-upload"
-              className="bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors inline-block"
+              className="bg-[#006D5B] text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-purple-700 transition-colors inline-block"
             >
               Choose File
             </label>
@@ -343,11 +402,45 @@ const UserDashboard = () => {
           {selectedFile && (
             <div className="mt-8">
               <h4 className="font-semibold text-gray-900 mb-4">File Details</h4>
-              <div className="bg-purple-50 rounded-lg p-4">
+              <div className="bg-purple-50 rounded-lg p-4 mb-4">
                 <p><strong>Name:</strong> {selectedFile.name}</p>
                 <p><strong>Size:</strong> {formatFileSize(selectedFile.size)}</p>
                 <p><strong>Type:</strong> {selectedFile.type}</p>
+                {audioDuration > 0 && (
+                  <p><strong>Duration:</strong> {audioDuration} minutes</p>
+                )}
               </div>
+
+              {/* Price Estimate */}
+              {priceEstimate && (
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-bold text-green-900 mb-2 flex items-center">
+                        <Calculator className="h-5 w-5 mr-2" />
+                        Estimated Cost
+                      </h4>
+                      <p className="text-sm text-green-700 mb-3">
+                        Based on: {priceEstimate.settings}
+                      </p>
+                      <div className="space-y-1 text-sm text-green-800">
+                        <p>Duration: <strong>{priceEstimate.duration} minutes</strong></p>
+                        <p>Rate: <strong>${priceEstimate.rate}/minute</strong></p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-green-700 mb-1">Total</p>
+                      <p className="text-3xl font-bold text-green-900">${priceEstimate.price}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-green-200">
+                    <p className="text-xs text-green-600">
+                      <Shield className="h-3 w-3 inline mr-1" />
+                      You can customize speakers, turnaround time, and other options on the next page
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={handleUpload}

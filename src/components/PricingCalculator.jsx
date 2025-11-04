@@ -11,24 +11,23 @@ const PricingCalculator = () => {
   const [duration, setDuration] = useState(60); // minutes
 
   const calculatePrice = () => {
-    let baseRate = 0;
-    let multiplier = 1;
-
-    // Base rates based on turnaround
-    const rates = {
+    // Base rates per minute (turnaround time)
+    const baseRates = {
       '3days': 0.9,
       '1.5days': 1.2,
       '6-12hrs': 1.5
     };
 
-    baseRate = rates[turnaround];
+    let rate = baseRates[turnaround] || 0.9;
 
-    // Speaker multiplier
-    if (speakers === 3) {
-      multiplier += 0.35;
+    // Speaker modifier
+    if (speakers === 2) {
+      rate += 0.3;
+    } else if (speakers === 3) {
+      rate += 0.35;
     }
 
-    // Timestamp multiplier
+    // Timestamp frequency modifier
     const timestampRates = {
       'speaker': 0.3,
       '2min': 0.2,
@@ -36,19 +35,19 @@ const PricingCalculator = () => {
       '10sec': 0.6
     };
 
-    multiplier += timestampRates[timestamp];
+    rate += timestampRates[timestamp] || 0.3;
 
-    // Verbatim multiplier
+    // Full verbatim modifier
     if (verbatim) {
-      multiplier += 0.2;
+      rate += 0.2;
     }
 
-    const totalRate = baseRate * multiplier;
-    const totalPrice = (duration / 60) * totalRate * 60; // per minute rate
+    // Calculate total price (duration in minutes * rate per minute)
+    const totalPrice = duration * rate;
 
     return {
-      rate: totalRate.toFixed(2),
-      price: totalPrice.toFixed(0)
+      rate: rate.toFixed(2),
+      price: totalPrice.toFixed(2)
     };
   };
 
@@ -123,7 +122,7 @@ const PricingCalculator = () => {
       </div>
 
       <div className="bg-purple-50 rounded-xl p-6 text-center">
-        <div className="text-3xl font-bold text-purple-600 mb-2">₦{result.price}</div>
+        <div className="text-3xl font-bold text-purple-600 mb-2">${result.price}</div>
         <div className="text-gray-600">Rate: ${result.rate}/minute</div>
       </div>
     </div>

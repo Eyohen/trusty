@@ -1,168 +1,4 @@
 
-// import React, { useState } from 'react';
-// import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
-// import { useNavigate } from 'react-router-dom';
-// import { nav } from 'framer-motion/client';
-// import axios from 'axios';
-// import { URL } from '../url';
-// import { useAuth } from '../context/AuthContext';
-
-
-
-// // Checkout Page Component
-// const Checkout = () => {
-//   const [orderDetails] = useState({
-//     fileName: 'meeting-recording.mp3',
-//     duration: 45,
-//     speakers: 2,
-//     turnaround: '1.5days',
-//     timestamp: 'speaker',
-//     verbatim: false,
-//     totalCost: 84
-//   });
-
-//     const navigate = useNavigate()
-
-//   const handlePayment = () => {
-//     // Initialize Paystack payment
-//     // This is where you'd integrate with Paystack's inline payment
-//     console.log('Processing payment...');
-//     alert('Payment successful! Your transcription order has been submitted.');
-//     navigate('/user-dashboard');
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white">
-//       <nav className="bg-white shadow-sm border-b border-purple-100">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="flex justify-between items-center h-16">
-//             <div className="flex items-center space-x-2">
-//               <FileText className="h-6 w-6 text-purple-600" />
-//               <span className="text-xl font-bold text-purple-600">TrustyTranscript</span>
-//             </div>
-//             <button
-//               onClick={() => onNavigate('user-dashboard')}
-//               className="text-purple-600 hover:text-purple-700"
-//             >
-//               ← Back to Dashboard
-//             </button>
-//           </div>
-//         </div>
-//       </nav>
-
-//       <div className="max-w-4xl mx-auto px-4 py-12">
-//         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
-        
-//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-//           {/* Order Summary */}
-//           <div className="bg-white rounded-2xl shadow-lg p-8">
-//             <h2 className="text-2xl font-bold text-gray-900 mb-6">Order Summary</h2>
-            
-//             <div className="space-y-4">
-//               <div className="flex justify-between">
-//                 <span className="text-gray-600">File:</span>
-//                 <span className="font-semibold">{orderDetails.fileName}</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="text-gray-600">Duration:</span>
-//                 <span className="font-semibold">{orderDetails.duration} minutes</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="text-gray-600">Speakers:</span>
-//                 <span className="font-semibold">{orderDetails.speakers}</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="text-gray-600">Turnaround:</span>
-//                 <span className="font-semibold">
-//                   {orderDetails.turnaround === '1.5days' ? '1.5 Days' : orderDetails.turnaround}
-//                 </span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="text-gray-600">Timestamps:</span>
-//                 <span className="font-semibold">Speaker Changes</span>
-//               </div>
-//               <div className="flex justify-between">
-//                 <span className="text-gray-600">Verbatim:</span>
-//                 <span className="font-semibold">{orderDetails.verbatim ? 'Yes' : 'No'}</span>
-//               </div>
-//             </div>
-
-//             <div className="border-t border-gray-200 mt-6 pt-6">
-//               <div className="flex justify-between text-2xl font-bold text-purple-600">
-//                 <span>Total:</span>
-//                 <span>₦{orderDetails.totalCost}</span>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Payment Form */}
-//           <div className="bg-white rounded-2xl shadow-lg p-8">
-//             <h2 className="text-2xl font-bold text-gray-900 mb-6">Payment Details</h2>
-            
-//             <form className="space-y-6">
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-//                 <input
-//                   type="email"
-//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-//                   placeholder="john@example.com"
-//                   required
-//                 />
-//               </div>
-
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-//                 <input
-//                   type="text"
-//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-//                   placeholder="John Doe"
-//                   required
-//                 />
-//               </div>
-
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-//                 <input
-//                   type="tel"
-//                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-//                   placeholder="+234 803 123 4567"
-//                   required
-//                 />
-//               </div>
-
-//               <div className="bg-purple-50 rounded-lg p-4">
-//                 <div className="flex items-center space-x-2 mb-2">
-//                   <Shield className="h-5 w-5 text-purple-600" />
-//                   <span className="font-semibold text-purple-800">Secure Payment</span>
-//                 </div>
-//                 <p className="text-sm text-purple-600">
-//                   Your payment is secured by Paystack with 256-bit SSL encryption.
-//                 </p>
-//               </div>
-
-//               <button
-//                 type="button"
-//                 onClick={handlePayment}
-//                 className="w-full bg-purple-600 text-white py-4 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors"
-//               >
-//                 Pay ₦{orderDetails.totalCost} with Paystack
-//               </button>
-//             </form>
-
-//             <div className="mt-6 text-center text-sm text-gray-600">
-//               <p>By proceeding, you agree to our Terms of Service and Privacy Policy.</p>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Checkout
-
-
-
 
 import React, { useState, useEffect } from 'react';
 import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
@@ -194,8 +30,9 @@ const Checkout = () => {
   const location = useLocation();
   const { user, getAuthHeaders } = useAuth();
 
-  // Get file from navigation state
+  // Get file and duration from navigation state
   const uploadedFile = location.state?.file;
+  const uploadedDuration = location.state?.audioDuration;
 
   useEffect(() => {
     // Pre-fill customer info from user data
@@ -207,9 +44,19 @@ const Checkout = () => {
       });
     }
 
-    // Calculate initial pricing
+    // Set duration from uploaded file if available
+    if (uploadedDuration && uploadedDuration > 0) {
+      setOrderDetails(prev => ({
+        ...prev,
+        duration: uploadedDuration
+      }));
+    }
+  }, [user, uploadedDuration]);
+
+  // Calculate pricing whenever order details change
+  useEffect(() => {
     calculatePricing();
-  }, [user]);
+  }, [orderDetails]);
 
   // Calculate pricing based on current settings
   const calculatePricing = async () => {
@@ -263,7 +110,14 @@ const Checkout = () => {
       return response.data;
     } catch (error) {
       console.error('Create order error:', error);
-      setError(error.response?.data?.message || 'Failed to create order');
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map(err => err.msg).join('. ');
+        setError(errorMessages);
+      } else {
+        setError(error.response?.data?.message || 'Failed to create order');
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -284,10 +138,10 @@ const Checkout = () => {
 
       // Initialize Paystack payment
       const handler = window.PaystackPop.setup({
-        key: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key',
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_d2600cd411e787df1135a9b161447361dd0aa805',
         email: customerInfo.email,
-        amount: Math.round(pricing.totalPrice * 100), // Convert to kobo
-        currency: 'NGN',
+        amount: Math.round(pricing.totalPrice * 100), // Convert to cents (for USD)
+        currency: 'USD',
         ref: orderData.paymentReference,
         metadata: {
           custom_fields: [
@@ -355,17 +209,24 @@ const Checkout = () => {
 
     } catch (error) {
       console.error('Payment verification error:', error);
-      setError('Payment verification failed. Please contact support.');
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map(err => err.msg).join('. ');
+        setError(errorMessages);
+      } else {
+        setError(error.response?.data?.message || 'Payment verification failed. Please contact support.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-NG', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0
+      currency: 'USD',
+      minimumFractionDigits: 2
     }).format(amount || 0);
   };
 
@@ -376,7 +237,7 @@ const Checkout = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <FileText className="h-6 w-6 text-purple-600" />
-              <span className="text-xl font-bold text-purple-600">TrustyTranscript</span>
+              <span className="text-xl font-bold text-purple-600">ZenTranscript</span>
             </div>
             <button
               onClick={() => navigate('/user-dashboard')}
@@ -408,7 +269,16 @@ const Checkout = () => {
                   <p><strong>Name:</strong> {uploadedFile.name}</p>
                   <p><strong>Size:</strong> {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                   <p><strong>Type:</strong> {uploadedFile.type}</p>
+                  {uploadedDuration && (
+                    <p><strong>Detected Duration:</strong> {uploadedDuration} minutes</p>
+                  )}
                 </div>
+                {uploadedDuration && (
+                  <div className="mt-3 text-sm text-purple-600">
+                    <CheckCircle className="h-4 w-4 inline mr-1" />
+                    Duration auto-detected and set below. You can adjust if needed.
+                  </div>
+                )}
               </div>
             )}
 
