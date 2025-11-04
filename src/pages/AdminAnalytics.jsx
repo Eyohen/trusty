@@ -64,7 +64,7 @@
 //             </div>
 //             <div className="ml-5 w-0 flex-1">
 //               <dl>
-//                 <dt className="text-sm font-medium text-gray-500 truncate">Revenue (₦)</dt>
+//                 <dt className="text-sm font-medium text-gray-500 truncate">Revenue ($)</dt>
 //                 <dd className="text-lg font-medium text-gray-900">2,847,290</dd>
 //               </dl>
 //             </div>
@@ -195,9 +195,9 @@ const AdminAnalytics = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-NG', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'NGN',
+      currency: 'USD',
       minimumFractionDigits: 0
     }).format(amount || 0);
   };

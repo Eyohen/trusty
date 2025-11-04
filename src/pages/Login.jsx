@@ -42,8 +42,13 @@ const LoginPage = () => {
 
     } catch (error) {
       console.error('Login error:', error);
-      
-      if (error.response?.data?.message) {
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Extract all error messages and display them
+        const errorMessages = error.response.data.errors.map(err => err.msg).join('. ');
+        setError(errorMessages);
+      } else if (error.response?.data?.message) {
         setError(error.response.data.message);
       } else if (error.response?.status === 401) {
         setError('Invalid email or password');
@@ -62,9 +67,9 @@ const LoginPage = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <FileText className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-              TrustyTranscript
+            <FileText className="h-8 w-8 text-[#006D5B]" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-[#006D5B] to-purple-800 bg-clip-text text-transparent">
+              ZenTranscript
             </span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
@@ -85,7 +90,7 @@ const LoginPage = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006D5B] focus:border-transparent"
                 placeholder="Enter your email"
                 required
                 disabled={loading}
@@ -99,7 +104,7 @@ const LoginPage = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006D5B] focus:border-transparent"
                   placeholder="Enter your password"
                   required
                   disabled={loading}
@@ -119,14 +124,14 @@ const LoginPage = () => {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  className="w-4 h-4 text-[#006D5B] border-gray-300 rounded focus:ring-purple-500"
                   disabled={loading}
                 />
                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
               </label>
               <button 
                 type="button" 
-                className="text-sm text-purple-600 hover:text-purple-700 disabled:opacity-50"
+                className="text-sm text-[#006D5B] hover:text-purple-700 disabled:opacity-50"
                 disabled={loading}
                 onClick={() => navigate('/forgot-password')}
               >
@@ -137,7 +142,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full bg-[#006D5B] text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {loading ? (
                 <>
@@ -155,7 +160,7 @@ const LoginPage = () => {
               Don't have an account?{' '}
               <button
                 onClick={() => navigate('/register')}
-                className="text-purple-600 hover:text-purple-700 font-semibold"
+                className="text-[#006D5B] hover:text-purple-700 font-semibold"
                 disabled={loading}
               >
                 Sign up
@@ -178,7 +183,7 @@ const LoginPage = () => {
         <div className="text-center mt-6">
           <button
             onClick={() => navigate('/')}
-            className="text-purple-600 hover:text-purple-700"
+            className="text-[#006D5B] hover:text-purple-700"
             disabled={loading}
           >
             ← Back to home

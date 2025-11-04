@@ -12,7 +12,17 @@ import { useAuth } from '../context/AuthContext';
 const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
+  // Handle Start Transcribing click - check if user is logged in
+  const handleStartTranscribing = () => {
+    if (isAuthenticated && user) {
+      navigate('/user-dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white">
@@ -21,28 +31,42 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <FileText className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                TrustyTranscript
+              <FileText className="h-8 w-8 text-[#006D5B]" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-[#006D5B] to-purple-800 bg-clip-text text-[#006D5B]">
+                ZenTranscript
               </span>
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-purple-600 transition-colors">Features</a>
-              <a href="#pricing" className="text-gray-700 hover:text-purple-600 transition-colors">Pricing</a>
-              <a href="#about" className="text-gray-700 hover:text-purple-600 transition-colors">About</a>
-              <button
-                onClick={() => navigate('/login')}
-                className="text-purple-600 hover:text-purple-700 transition-colors"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => navigate('/register')}
-                className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Get Started
-              </button>
+              <a href="#features" className="text-gray-700 hover:text-[#006D5B] transition-colors">Features</a>
+              <a href="#pricing" className="text-gray-700 hover:text-[#006D5B] transition-colors">Pricing</a>
+              <a href="#about" className="text-gray-700 hover:text-[#006D5B] transition-colors">About</a>
+              {isAuthenticated && user ? (
+                <>
+                  <span className="text-gray-700">Welcome, {user.firstName || 'User'}!</span>
+                  <button
+                    onClick={() => navigate('/user-dashboard')}
+                    className="bg-[#006D5B] text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Dashboard
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="text-[#006D5B] hover:text-purple-700 transition-colors"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="bg-[#006D5B] text-white px-6 py-2 rounded-lg hover:bg-[#006D5B] transition-colors"
+                  >
+                    Get Started
+                  </button>
+                </>
+              )}
             </div>
 
             <button
@@ -61,18 +85,32 @@ const Home = () => {
               <a href="#features" className="block py-2 text-gray-700">Features</a>
               <a href="#pricing" className="block py-2 text-gray-700">Pricing</a>
               <a href="#about" className="block py-2 text-gray-700">About</a>
-              <button
-                onClick={() => onNavigate('login')}
-                className="block w-full text-left py-2 text-purple-600"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => onNavigate('register')}
-                className="block w-full bg-purple-600 text-white px-4 py-2 rounded-lg mt-2"
-              >
-                Get Started
-              </button>
+              {isAuthenticated && user ? (
+                <>
+                  <p className="py-2 text-gray-700">Welcome, {user.firstName || 'User'}!</p>
+                  <button
+                    onClick={() => navigate('/user-dashboard')}
+                    className="block w-full bg-[#006D5B] text-white px-4 py-2 rounded-lg mt-2"
+                  >
+                    Dashboard
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="block w-full text-left py-2 text-[#006D5B]"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="block w-full bg-[#006D5B] text-white px-4 py-2 rounded-lg mt-2"
+                  >
+                    Get Started
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -83,7 +121,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
             Transform Audio to
-            <span className="bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent block">
+            <span className="bg-gradient-to-r from-[#006D5B] to-purple-800 bg-clip-text text-transparent block">
               Perfect Text
             </span>
           </h1>
@@ -93,16 +131,16 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => onNavigate('register')}
-              className="bg-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-purple-700 transition-all transform hover:scale-105 shadow-lg"
+              onClick={handleStartTranscribing}
+              className="bg-[#006D5B] text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-[#006D5B] transition-all transform hover:scale-105 shadow-lg"
             >
               Start Transcribing
               <ArrowRight className="inline ml-2 h-5 w-5" />
             </button>
-            <button className="border border-purple-300 text-purple-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-purple-50 transition-colors">
+            {/* <button className="border border-purple-300 text-[#006D5B] px-8 py-4 rounded-xl text-lg font-semibold hover:bg-[#006D5B] transition-colors">
               <Play className="inline mr-2 h-5 w-5" />
               Watch Demo
-            </button>
+            </button> */}
           </div>
         </div>
       </section>
@@ -111,14 +149,14 @@ const Home = () => {
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose TrustyTranscript?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose ZenTranscript?</h2>
             <p className="text-xl text-gray-600">Professional features for accurate transcription</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-white border border-purple-100">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap className="h-8 w-8 text-purple-600" />
+                <Zap className="h-8 w-8 text-[#006D5B]" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Lightning Fast</h3>
               <p className="text-gray-600">Get your transcripts in as little as 6-12 hours with our express service.</p>
@@ -126,7 +164,7 @@ const Home = () => {
             
             <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-white border border-purple-100">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="h-8 w-8 text-purple-600" />
+                <Shield className="h-8 w-8 text-[#006D5B]" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">99.9% Accurate</h3>
               <p className="text-gray-600">Professional human transcribers ensure the highest accuracy for your content.</p>
@@ -134,7 +172,7 @@ const Home = () => {
             
             <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-white border border-purple-100">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Globe className="h-8 w-8 text-purple-600" />
+                <Globe className="h-8 w-8 text-[#006D5B]" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Multiple Languages</h3>
               <p className="text-gray-600">Support for 50+ languages with native speaker transcribers.</p>
@@ -156,7 +194,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-600 to-purple-800">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#006D5B] to-purple-800">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-purple-100 mb-8">
@@ -164,7 +202,7 @@ const Home = () => {
           </p>
           <button
             onClick={() => navigate('/register')}
-            className="bg-white text-purple-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-lg"
+            className="bg-white text-[#006D5B] px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-lg"
           >
             Create Your Account
             <ArrowRight className="inline ml-2 h-5 w-5" />
@@ -178,8 +216,8 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <FileText className="h-6 w-6 text-purple-400" />
-                <span className="text-xl font-bold">TrustyTranscript</span>
+                <FileText className="h-6 w-6 text-[#006D5B]" />
+                <span className="text-xl font-bold">ZenTranscript</span>
               </div>
               <p className="text-gray-400 mb-4">
                 Professional transcription services with unmatched accuracy and speed.
@@ -208,7 +246,7 @@ const Home = () => {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 TrustyTranscript. All rights reserved.</p>
+            <p>&copy; 2025 UXHUNTERS. All rights reserved.</p>
           </div>
         </div>
       </footer>
