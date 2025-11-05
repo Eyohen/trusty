@@ -13,13 +13,12 @@ const Checkout = () => {
     duration: 45,
     speakers: 2,
     turnaroundTime: '1.5days',
-    timestampFrequency: 'speaker',
+    timestampFrequency: 'none',
     isVerbatim: false
   });
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
-    email: '',
-    phone: ''
+    email: ''
   });
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,8 +38,7 @@ const Checkout = () => {
     if (user) {
       setCustomerInfo({
         name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-        email: user.email || '',
-        phone: user.phone || ''
+        email: user.email || ''
       });
     }
 
@@ -128,8 +126,14 @@ const Checkout = () => {
   const handlePayment = async () => {
     try {
       // Validate customer info
-      if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+      if (!customerInfo.name || !customerInfo.email) {
         setError('Please fill in all customer information');
+        return;
+      }
+
+      // Check if PaystackPop is loaded
+      if (!window.PaystackPop) {
+        setError('Payment system not loaded. Please refresh the page and try again.');
         return;
       }
 
@@ -331,7 +335,8 @@ const Checkout = () => {
                     onChange={(e) => updateOrderDetail('timestampFrequency', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="speaker">Speaker Change</option>
+                    <option value="none">No Timestamp</option>
+                    <option value="speaker">No speaker</option>
                     <option value="2min">Every 2 Minutes</option>
                     <option value="30sec">Every 30 Seconds</option>
                     <option value="10sec">Every 10 Seconds</option>
@@ -347,7 +352,7 @@ const Checkout = () => {
                     onChange={(e) => updateOrderDetail('isVerbatim', e.target.checked)}
                     className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                   />
-                  <span className="text-sm font-medium text-gray-700">Full Verbatim (+$0.20/min)</span>
+                  <span className="text-sm font-medium text-gray-700">Full Verbatim</span>
                 </label>
               </div>
             </div>
@@ -381,17 +386,6 @@ const Checkout = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="+234 803 123 4567"
-                    required
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -420,7 +414,8 @@ const Checkout = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Timestamps:</span>
                   <span className="font-medium">
-                    {orderDetails.timestampFrequency === 'speaker' ? 'Speaker Change' :
+                    {orderDetails.timestampFrequency === 'none' ? 'No Timestamp' :
+                     orderDetails.timestampFrequency === 'speaker' ? 'No speaker' :
                      orderDetails.timestampFrequency === '2min' ? 'Every 2 Minutes' :
                      orderDetails.timestampFrequency === '30sec' ? 'Every 30 Seconds' : 'Every 10 Seconds'}
                   </span>

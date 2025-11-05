@@ -6,41 +6,60 @@ import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X,
 const PricingCalculator = () => {
   const [speakers, setSpeakers] = useState(2);
   const [turnaround, setTurnaround] = useState('3days');
-  const [timestamp, setTimestamp] = useState('speaker');
+  const [timestamp, setTimestamp] = useState('none');
   const [verbatim, setVerbatim] = useState(false);
   const [duration, setDuration] = useState(60); // minutes
 
   const calculatePrice = () => {
-    // Base rates per minute (turnaround time)
-    const baseRates = {
-      '3days': 0.9,
-      '1.5days': 1.2,
-      '6-12hrs': 1.5
-    };
+    // Base rates per minute based on verbatim type, speakers, and turnaround
+    let rate = 0;
 
-    let rate = baseRates[turnaround] || 0.9;
-
-    // Speaker modifier
-    if (speakers === 2) {
-      rate += 0.3;
-    } else if (speakers === 3) {
-      rate += 0.35;
+    if (!verbatim) {
+      // CLEAN VERBATIM
+      if (speakers === 2) {
+        const cleanVerbatim2Speakers = {
+          '3days': 0.9,
+          '1.5days': 1.2,
+          '6-12hrs': 1.5
+        };
+        rate = cleanVerbatim2Speakers[turnaround] || 0.9;
+      } else if (speakers === 3) {
+        const cleanVerbatim3Speakers = {
+          '3days': 1.25,
+          '1.5days': 1.2,
+          '6-12hrs': 1.5
+        };
+        rate = cleanVerbatim3Speakers[turnaround] || 1.25;
+      }
+    } else {
+      // FULL VERBATIM
+      if (speakers === 2) {
+        const fullVerbatim2Speakers = {
+          '3days': 1.1,
+          '1.5days': 1.4,
+          '6-12hrs': 1.7
+        };
+        rate = fullVerbatim2Speakers[turnaround] || 1.1;
+      } else if (speakers === 3) {
+        const fullVerbatim3Speakers = {
+          '3days': 1.45,
+          '1.5days': 1.2,
+          '6-12hrs': 2.7
+        };
+        rate = fullVerbatim3Speakers[turnaround] || 1.45;
+      }
     }
 
     // Timestamp frequency modifier
     const timestampRates = {
+      'none': 0.0,
       'speaker': 0.3,
       '2min': 0.2,
       '30sec': 0.4,
       '10sec': 0.6
     };
 
-    rate += timestampRates[timestamp] || 0.3;
-
-    // Full verbatim modifier
-    if (verbatim) {
-      rate += 0.2;
-    }
+    rate += timestampRates[timestamp] || 0.0;
 
     // Calculate total price (duration in minutes * rate per minute)
     const totalPrice = duration * rate;
@@ -101,7 +120,8 @@ const PricingCalculator = () => {
             onChange={(e) => setTimestamp(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
-            <option value="speaker">Speaker Change</option>
+            <option value="none">No Timestamp</option>
+            <option value="speaker">No speaker</option>
             <option value="2min">Every 2 Minutes</option>
             <option value="30sec">Every 30 Seconds</option>
             <option value="10sec">Every 10 Seconds</option>
@@ -117,7 +137,7 @@ const PricingCalculator = () => {
             onChange={(e) => setVerbatim(e.target.checked)}
             className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
           />
-          <span className="text-sm font-medium text-gray-700">Full Verbatim (+$0.20/min)</span>
+          <span className="text-sm font-medium text-gray-700">Full Verbatim</span>
         </label>
       </div>
 
