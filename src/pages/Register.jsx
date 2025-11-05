@@ -98,7 +98,7 @@ const RegisterPage = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <FileText className="h-8 w-8 text-[#006D5B]" />
             <span className="text-2xl font-bold bg-gradient-to-r from-[#006D5B] to-purple-800 bg-clip-text text-transparent">
-              TrustyTranscript
+              ZenTranscript
             </span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>

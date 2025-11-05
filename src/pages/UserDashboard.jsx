@@ -260,19 +260,69 @@ const UserDashboard = () => {
   };
 
   const calculatePriceEstimate = (duration) => {
-    // Default settings: 2 speakers, 3 days turnaround, speaker change timestamp, no verbatim
-    const baseRate = 0.9; // 3 days
-    const speakerMod = 0.3; // 2 speakers
-    const timestampMod = 0.3; // speaker change
+    // Default settings: 2 speakers, 3 days turnaround, no timestamp, clean verbatim
+    // Using new pricing structure
+    let baseRate = 0;
+    const speakers = 2;
+    const turnaroundTime = '3days';
+    const isVerbatim = false;
+    const timestampFrequency = 'none';
 
-    const rate = baseRate + speakerMod + timestampMod;
+    // Calculate base rate based on verbatim type, speakers, and turnaround
+    if (!isVerbatim) {
+      // CLEAN VERBATIM
+      if (speakers === 2) {
+        const cleanVerbatim2Speakers = {
+          '3days': 0.9,
+          '1.5days': 1.2,
+          '6-12hrs': 1.5
+        };
+        baseRate = cleanVerbatim2Speakers[turnaroundTime] || 0.9;
+      } else if (speakers >= 3) {
+        const cleanVerbatim3Speakers = {
+          '3days': 1.25,
+          '1.5days': 1.2,
+          '6-12hrs': 1.5
+        };
+        baseRate = cleanVerbatim3Speakers[turnaroundTime] || 1.25;
+      }
+    } else {
+      // FULL VERBATIM
+      if (speakers === 2) {
+        const fullVerbatim2Speakers = {
+          '3days': 1.1,
+          '1.5days': 1.4,
+          '6-12hrs': 1.7
+        };
+        baseRate = fullVerbatim2Speakers[turnaroundTime] || 1.1;
+      } else if (speakers >= 3) {
+        const fullVerbatim3Speakers = {
+          '3days': 1.45,
+          '1.5days': 1.2,
+          '6-12hrs': 2.7
+        };
+        baseRate = fullVerbatim3Speakers[turnaroundTime] || 1.45;
+      }
+    }
+
+    // Timestamp frequency modifier
+    const timestampRates = {
+      'none': 0.0,
+      'speaker': 0.3,
+      '2min': 0.2,
+      '30sec': 0.4,
+      '10sec': 0.6
+    };
+
+    const timestampMod = timestampRates[timestampFrequency] || 0.0;
+    const rate = baseRate + timestampMod;
     const estimatedPrice = duration * rate;
 
     setPriceEstimate({
       duration,
       rate: rate.toFixed(2),
       price: estimatedPrice.toFixed(2),
-      settings: '2 speakers, 3 days, speaker timestamps'
+      settings: '1-2 speakers, 3 days, clean verbatim, no timestamps'
     });
   };
 
