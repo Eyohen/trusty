@@ -121,7 +121,7 @@ const PricingCalculator = () => {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="none">No Timestamp</option>
-            <option value="speaker">No speaker</option>
+            <option value="speaker">Change of speaker</option>
             <option value="2min">Every 2 Minutes</option>
             <option value="30sec">Every 30 Seconds</option>
             <option value="10sec">Every 10 Seconds</option>

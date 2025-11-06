@@ -66,7 +66,7 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
+          <div onClick={() => navigate('/')} className="flex items-center justify-center space-x-2 mb-4">
             <FileText className="h-8 w-8 text-[#006D5B]" />
             <span className="text-2xl font-bold bg-gradient-to-r from-[#006D5B] to-purple-800 bg-clip-text text-transparent">
               ZenTranscript
