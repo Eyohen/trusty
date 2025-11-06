@@ -9,10 +9,19 @@ import { useAuth } from '../context/AuthContext';
 
 // Checkout Page Component
 const Checkout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, getAuthHeaders } = useAuth();
+
+  // Get file and duration from navigation state
+  const uploadedFile = location.state?.file;
+  const uploadedDuration = location.state?.audioDuration;
+
+  // Initialize with uploaded duration if available
   const [orderDetails, setOrderDetails] = useState({
-    duration: 45,
+    duration: uploadedDuration && uploadedDuration > 0 ? uploadedDuration : 45,
     speakers: 2,
-    turnaroundTime: '1.5days',
+    turnaroundTime: '3days',
     timestampFrequency: 'none',
     isVerbatim: false
   });
@@ -25,14 +34,6 @@ const Checkout = () => {
   const [error, setError] = useState('');
   const [order, setOrder] = useState(null);
 
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user, getAuthHeaders } = useAuth();
-
-  // Get file and duration from navigation state
-  const uploadedFile = location.state?.file;
-  const uploadedDuration = location.state?.audioDuration;
-
   useEffect(() => {
     // Pre-fill customer info from user data
     if (user) {
@@ -41,15 +42,7 @@ const Checkout = () => {
         email: user.email || ''
       });
     }
-
-    // Set duration from uploaded file if available
-    if (uploadedDuration && uploadedDuration > 0) {
-      setOrderDetails(prev => ({
-        ...prev,
-        duration: uploadedDuration
-      }));
-    }
-  }, [user, uploadedDuration]);
+  }, [user]);
 
   // Calculate pricing whenever order details change
   useEffect(() => {
@@ -239,7 +232,7 @@ const Checkout = () => {
       <nav className="bg-white shadow-sm border-b border-purple-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
+            <div onClick={() => navigate('/')} className="flex items-center space-x-2">
               <FileText className="h-6 w-6 text-purple-600" />
               <span className="text-xl font-bold text-purple-600">ZenTranscript</span>
             </div>
@@ -336,7 +329,7 @@ const Checkout = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
                     <option value="none">No Timestamp</option>
-                    <option value="speaker">No speaker</option>
+                    <option value="speaker">Change of speaker</option>
                     <option value="2min">Every 2 Minutes</option>
                     <option value="30sec">Every 30 Seconds</option>
                     <option value="10sec">Every 10 Seconds</option>
