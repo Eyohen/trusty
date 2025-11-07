@@ -49,20 +49,66 @@ const Checkout = () => {
     calculatePricing();
   }, [orderDetails]);
 
-  // Calculate pricing based on current settings
-  const calculatePricing = async () => {
+  // Calculate pricing based on current settings - EXACT SAME LOGIC AS HOME PAGE
+  const calculatePricing = () => {
     try {
-      const response = await axios.get(`${URL}/api/orders/pricing`, {
-        params: {
-          duration: orderDetails.duration,
-          speakers: orderDetails.speakers,
-          turnaroundTime: orderDetails.turnaroundTime,
-          timestampFrequency: orderDetails.timestampFrequency,
-          isVerbatim: orderDetails.isVerbatim
-        }
-      });
+      // Base rates per minute based on verbatim type, speakers, and turnaround
+      let rate = 0;
 
-      setPricing(response.data.pricing);
+      if (!orderDetails.isVerbatim) {
+        // CLEAN VERBATIM
+        if (orderDetails.speakers === 2) {
+          const cleanVerbatim2Speakers = {
+            '3days': 0.9,
+            '1.5days': 1.2,
+            '6-12hrs': 1.5
+          };
+          rate = cleanVerbatim2Speakers[orderDetails.turnaroundTime] || 0.9;
+        } else if (orderDetails.speakers === 3) {
+          const cleanVerbatim3Speakers = {
+            '3days': 1.25,
+            '1.5days': 1.2,
+            '6-12hrs': 1.5
+          };
+          rate = cleanVerbatim3Speakers[orderDetails.turnaroundTime] || 1.25;
+        }
+      } else {
+        // FULL VERBATIM
+        if (orderDetails.speakers === 2) {
+          const fullVerbatim2Speakers = {
+            '3days': 1.1,
+            '1.5days': 1.4,
+            '6-12hrs': 1.7
+          };
+          rate = fullVerbatim2Speakers[orderDetails.turnaroundTime] || 1.1;
+        } else if (orderDetails.speakers === 3) {
+          const fullVerbatim3Speakers = {
+            '3days': 1.45,
+            '1.5days': 1.2,
+            '6-12hrs': 2.7
+          };
+          rate = fullVerbatim3Speakers[orderDetails.turnaroundTime] || 1.45;
+        }
+      }
+
+      // Timestamp frequency modifier
+      const timestampRates = {
+        'none': 0.0,
+        'speaker': 0.3,
+        '2min': 0.2,
+        '30sec': 0.4,
+        '10sec': 0.6
+      };
+
+      rate += timestampRates[orderDetails.timestampFrequency] || 0.0;
+
+      // Calculate total price (duration in minutes * rate per minute)
+      const totalPrice = orderDetails.duration * rate;
+
+      setPricing({
+        rate: rate.toFixed(2),
+        totalPrice: parseFloat(totalPrice.toFixed(2))
+      });
     } catch (error) {
       console.error('Pricing calculation error:', error);
       setError('Failed to calculate pricing');
@@ -71,13 +117,11 @@ const Checkout = () => {
 
   // Update order details and recalculate pricing
   const updateOrderDetail = (field, value) => {
-    const newDetails = { ...orderDetails, [field]: value };
-    setOrderDetails(newDetails);
-    
-    // Recalculate pricing after a short delay
-    setTimeout(() => {
-      calculatePricing();
-    }, 300);
+    setOrderDetails(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // Pricing will recalculate automatically via useEffect
   };
 
   // Create order before payment
