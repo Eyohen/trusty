@@ -4,10 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { usePaystackPayment } from 'react-paystack';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
 
 // Checkout Page Component
+/**
+ * PAYSTACK INTEGRATION NOTES:
+ * - Using react-paystack library for reliable payment processing
+ * - Script loaded via index.html: <script src="https://js.paystack.co/v1/inline.js"></script>
+ * - Test key: pk_test_... (for development)
+ * - Live key: pk_live_... (for production - set in .env)
+ * - Currency: USD (configured in Paystack dashboard)
+ * - Amount must be in cents (multiply by 100)
+ */
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,6 +43,8 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [order, setOrder] = useState(null);
+  const [paymentReference, setPaymentReference] = useState(null);
+  const [isPaystackReady, setIsPaystackReady] = useState(false);
 
   useEffect(() => {
     // Pre-fill customer info from user data
@@ -43,6 +55,40 @@ const Checkout = () => {
       });
     }
   }, [user]);
+
+  // Debug: Log environment configuration on mount
+  useEffect(() => {
+    console.log('=== PAYSTACK DEBUG INFO ===');
+    console.log('Environment:', import.meta.env.MODE);
+    console.log('API URL:', import.meta.env.VITE_URL);
+    console.log('Paystack Key Present:', !!import.meta.env.VITE_PAYSTACK_PUBLIC_KEY);
+    console.log('Paystack Key Type:', import.meta.env.VITE_PAYSTACK_PUBLIC_KEY?.startsWith('pk_test_') ? 'TEST' :
+                import.meta.env.VITE_PAYSTACK_PUBLIC_KEY?.startsWith('pk_live_') ? 'LIVE' : 'UNKNOWN');
+    console.log('=========================');
+  }, []);
+
+  // Check if Paystack script is loaded
+  useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds total
+
+    const checkPaystackScript = () => {
+      attempts++;
+
+      if (window.PaystackPop) {
+        console.log('✅ Paystack script loaded successfully');
+        setIsPaystackReady(true);
+      } else if (attempts < maxAttempts) {
+        // Retry after a short delay
+        setTimeout(checkPaystackScript, 100);
+      } else {
+        console.error('❌ Paystack script failed to load after 5 seconds');
+        setError('Payment system failed to load. Please refresh the page and try again.');
+      }
+    };
+
+    checkPaystackScript();
+  }, []);
 
   // Calculate pricing whenever order details change
   useEffect(() => {
@@ -159,64 +205,175 @@ const Checkout = () => {
     }
   };
 
+  // Paystack configuration
+  const getPaystackConfig = () => {
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
+    if (!publicKey) {
+      console.error('Paystack public key not found in environment variables');
+      return null;
+    }
+
+    if (!paymentReference || !customerInfo.email || !pricing) {
+      return null;
+    }
+
+    return {
+      reference: paymentReference,
+      email: customerInfo.email,
+      amount: Math.round(pricing.totalPrice * 100), // Amount in cents for USD
+      currency: 'USD',
+      publicKey: publicKey,
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Order ID",
+            variable_name: "order_id",
+            value: order?.id || 'pending'
+          },
+          {
+            display_name: "Duration",
+            variable_name: "duration",
+            value: `${orderDetails.duration} minutes`
+          },
+          {
+            display_name: "Customer Name",
+            variable_name: "customer_name",
+            value: customerInfo.name
+          }
+        ]
+      }
+    };
+  };
+
+  // Initialize Paystack payment hook
+  const config = getPaystackConfig();
+  const initializePayment = usePaystackPayment(config || {});
+
+  // Handle successful payment
+  const onPaymentSuccess = async (response) => {
+    try {
+      console.log('Payment successful:', response);
+      await verifyPayment(paymentReference, response.reference, response);
+    } catch (error) {
+      console.error('Payment verification error:', error);
+      setError('Payment verification failed. Please contact support with reference: ' + response.reference);
+      setLoading(false);
+    }
+  };
+
+  // Handle payment cancellation/closure
+  const onPaymentClose = () => {
+    console.log('Payment modal closed');
+    setError('Payment was cancelled. Please try again when ready.');
+    setLoading(false);
+  };
+
   // Handle Paystack payment
   const handlePayment = async () => {
     try {
+      setLoading(true);
+      setError('');
+
       // Validate customer info
       if (!customerInfo.name || !customerInfo.email) {
-        setError('Please fill in all customer information');
+        setError('Please fill in all customer information (Name and Email)');
+        setLoading(false);
         return;
       }
 
-      // Check if PaystackPop is loaded
-      if (!window.PaystackPop) {
-        setError('Payment system not loaded. Please refresh the page and try again.');
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(customerInfo.email)) {
+        setError('Please enter a valid email address');
+        setLoading(false);
+        return;
+      }
+
+      // Check if Paystack is ready
+      if (!isPaystackReady) {
+        setError('Payment system is still loading. Please wait a moment and try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Check for API key
+      const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+      if (!publicKey) {
+        setError('Payment system configuration error. Please contact support. (Error: Missing API key)');
+        console.error('VITE_PAYSTACK_PUBLIC_KEY is not set in environment variables');
+        setLoading(false);
+        return;
+      }
+
+      // Validate pricing
+      if (!pricing || pricing.totalPrice <= 0) {
+        setError('Invalid pricing. Please check your order details.');
+        setLoading(false);
         return;
       }
 
       // Create order first
+      console.log('Creating order...');
       const orderData = await createOrder();
 
-      // Initialize Paystack payment
-      const handler = window.PaystackPop.setup({
-        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_d2600cd411e787df1135a9b161447361dd0aa805',
-        email: customerInfo.email,
-        amount: Math.round(pricing.totalPrice * 100), // Convert to cents (for USD)
-        currency: 'USD',
-        ref: orderData.paymentReference,
-        metadata: {
-          custom_fields: [
-            {
-              display_name: "Order ID",
-              variable_name: "order_id",
-              value: orderData.order.id
-            },
-            {
-              display_name: "Duration",
-              variable_name: "duration",
-              value: `${orderDetails.duration} minutes`
-            }
-          ]
-        },
-        callback: async function(response) {
-          // Payment successful
-          try {
-            await verifyPayment(orderData.paymentReference, response.reference, response);
-          } catch (error) {
-            console.error('Payment verification error:', error);
-            alert('Payment verification failed. Please contact support.');
-          }
-        },
-        onClose: function() {
-          // Payment cancelled
-          console.log('Payment cancelled');
-        }
-      });
+      if (!orderData || !orderData.paymentReference) {
+        setError('Failed to create order. Please try again.');
+        setLoading(false);
+        return;
+      }
 
-      handler.openIframe();
+      console.log('Order created successfully:', orderData);
+      setPaymentReference(orderData.paymentReference);
+
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        try {
+          // Initialize payment with the config
+          const paymentConfig = {
+            reference: orderData.paymentReference,
+            email: customerInfo.email,
+            amount: Math.round(pricing.totalPrice * 100), // Amount in cents for USD
+            currency: 'USD',
+            publicKey: publicKey,
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: "Order ID",
+                  variable_name: "order_id",
+                  value: orderData.order.id
+                },
+                {
+                  display_name: "Duration",
+                  variable_name: "duration",
+                  value: `${orderDetails.duration} minutes`
+                },
+                {
+                  display_name: "Customer Name",
+                  variable_name: "customer_name",
+                  value: customerInfo.name
+                }
+              ]
+            }
+          };
+
+          console.log('Initializing Paystack with config:', { ...paymentConfig, publicKey: 'pk_***' });
+
+          // Use the hook to initialize payment
+          const paymentInstance = usePaystackPayment(paymentConfig);
+          paymentInstance(onPaymentSuccess, onPaymentClose);
+
+        } catch (initError) {
+          console.error('Payment initialization error:', initError);
+          setError('Failed to open payment modal. Please try again. Error: ' + initError.message);
+          setLoading(false);
+        }
+      }, 100);
 
     } catch (error) {
-      console.error('Payment initialization error:', error);
+      console.error('Payment handler error:', error);
+      setError('Payment initialization failed: ' + (error.response?.data?.message || error.message || 'Unknown error'));
+      setLoading(false);
     }
   };
 
@@ -294,8 +451,32 @@ const Checkout = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600">{error}</p>
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Payment Error</h3>
+                <p className="mt-1 text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isPaystackReady && (
+          <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg shadow-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">Initializing Payment System</h3>
+                <p className="mt-1 text-sm text-blue-700">Please wait while we load the secure payment gateway...</p>
+              </div>
+            </div>
           </div>
         )}
         
@@ -488,10 +669,22 @@ const Checkout = () => {
 
               <button
                 onClick={handlePayment}
-                disabled={loading || !pricing}
-                className="w-full bg-purple-600 text-white py-4 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !pricing || !isPaystackReady}
+                className="w-full bg-purple-600 text-white py-4 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
-                {loading ? 'Processing...' : `Pay ${formatCurrency(pricing?.totalPrice || 0)} with Paystack`}
+                {!isPaystackReady ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Loading Payment System...</span>
+                  </>
+                ) : loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <span>Pay {formatCurrency(pricing?.totalPrice || 0)} with Paystack</span>
+                )}
               </button>
 
               <div className="mt-4 text-center text-xs text-gray-600">
