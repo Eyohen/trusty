@@ -637,7 +637,7 @@ const Checkout = () => {
                   <span className="text-gray-600">Timestamps:</span>
                   <span className="font-medium">
                     {orderDetails.timestampFrequency === 'none' ? 'No Timestamp' :
-                     orderDetails.timestampFrequency === 'speaker' ? 'No speaker' :
+                     orderDetails.timestampFrequency === 'speaker' ? 'Change of speaker' :
                      orderDetails.timestampFrequency === '2min' ? 'Every 2 Minutes' :
                      orderDetails.timestampFrequency === '30sec' ? 'Every 30 Seconds' : 'Every 10 Seconds'}
                   </span>
