@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { nav } from 'framer-motion/client';
 import axios from 'axios';
@@ -10,46 +10,82 @@ import { useAuth } from '../context/AuthContext';
 
 // Admin Orders Component
 const AdminOrders = () => {
-  const [orders] = useState([
-    { id: 1, orderNumber: 'ORD-001', user: 'john@example.com', amount: 84, status: 'paid', date: '2024-03-15' },
-    { id: 2, orderNumber: 'ORD-002', user: 'sarah@example.com', amount: 126, status: 'pending', date: '2024-03-14' },
-    { id: 3, orderNumber: 'ORD-003', user: 'mike@example.com', amount: 72, status: 'paid', date: '2024-03-13' },
-    { id: 4, orderNumber: 'ORD-004', user: 'lisa@example.com', amount: 144, status: 'failed', date: '2024-03-12' },
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('');
+  const navigate = useNavigate();
+  const { getAuthHeaders } = useAuth();
 
-      const navigate = useNavigate()
+  useEffect(() => {
+    fetchOrders();
+  }, [statusFilter]);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await axios.get(`${URL}/api/admin/orders`, {
+        params: { status: statusFilter || undefined },
+        headers: getAuthHeaders()
+      });
+      setOrders(response.data.orders || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      // Don't show alert for empty results, just set empty array
+      if (error.response?.status !== 404) {
+        console.error('Failed to fetch orders:', error.message);
+      }
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'paid': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'failed': return 'bg-red-100 text-red-800';
+      case 'refunded': return 'bg-purple-100 text-purple-800';
+      case 'cancelled': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Orders Management</h1>
         <div className="flex space-x-3">
-          <input
-            type="text"
-            placeholder="Search orders..."
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-          />
-          <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-            <option>All Orders</option>
-            <option>Paid</option>
-            <option>Pending</option>
-            <option>Failed</option>
+          >
+            <option value="">All Orders</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </div>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Payment Orders</h3>
+          <h3 className="text-lg font-medium text-gray-900">Payment Orders ({orders.length})</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -58,34 +94,52 @@ const AdminOrders = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
+              {orders.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center">
+                    <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg font-medium">No orders found</p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      {statusFilter
+                        ? `No orders with status "${statusFilter}"`
+                        : 'Orders will appear here when users make payments'}
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {order.orderNumber}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.user}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${order.amount}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {order.user?.firstName} {order.user?.lastName}
+                    <div className="text-xs text-gray-500">{order.user?.email}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {order.currency} {parseFloat(order.amount).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div>{order.paymentMethod || 'N/A'}</div>
+                    <div className="text-xs">{order.paymentReference}</div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.paymentStatus)}`}>
+                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="text-purple-600 hover:text-purple-900">View</button>
-                      <button className="text-green-600 hover:text-green-900">Process</button>
-                      <button className="text-red-600 hover:text-red-900">Refund</button>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(order.createdAt)}
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
