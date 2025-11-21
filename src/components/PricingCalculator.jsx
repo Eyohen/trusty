@@ -14,6 +14,9 @@ const PricingCalculator = () => {
     // Base rates per minute based on verbatim type, speakers, and turnaround
     let rate = 0;
 
+    // Round up duration to nearest minute (as per new calculation)
+    const roundedDuration = Math.ceil(duration);
+
     if (!verbatim) {
       // CLEAN VERBATIM
       if (speakers === 2) {
@@ -26,8 +29,8 @@ const PricingCalculator = () => {
       } else if (speakers === 3) {
         const cleanVerbatim3Speakers = {
           '3days': 1.25,
-          '1.5days': 1.2,
-          '6-12hrs': 1.5
+          '1.5days': 1.6,
+          '6-12hrs': 1.95
         };
         rate = cleanVerbatim3Speakers[turnaround] || 1.25;
       }
@@ -35,18 +38,18 @@ const PricingCalculator = () => {
       // FULL VERBATIM
       if (speakers === 2) {
         const fullVerbatim2Speakers = {
-          '3days': 1.1,
-          '1.5days': 1.4,
-          '6-12hrs': 1.7
+          '3days': 1.2,
+          '1.5days': 1.5,
+          '6-12hrs': 1.8
         };
-        rate = fullVerbatim2Speakers[turnaround] || 1.1;
+        rate = fullVerbatim2Speakers[turnaround] || 1.2;
       } else if (speakers === 3) {
         const fullVerbatim3Speakers = {
-          '3days': 1.45,
-          '1.5days': 1.2,
-          '6-12hrs': 2.7
+          '3days': 1.6,
+          '1.5days': 1.95,
+          '6-12hrs': 2.3
         };
-        rate = fullVerbatim3Speakers[turnaround] || 1.45;
+        rate = fullVerbatim3Speakers[turnaround] || 1.6;
       }
     }
 
@@ -61,12 +64,13 @@ const PricingCalculator = () => {
 
     rate += timestampRates[timestamp] || 0.0;
 
-    // Calculate total price (duration in minutes * rate per minute)
-    const totalPrice = duration * rate;
+    // Calculate total price (rounded duration in minutes * rate per minute)
+    const totalPrice = roundedDuration * rate;
 
     return {
       rate: rate.toFixed(2),
-      price: totalPrice.toFixed(2)
+      price: totalPrice.toFixed(2),
+      roundedDuration
     };
   };
 

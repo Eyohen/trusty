@@ -105,6 +105,10 @@ const UserDashboard = () => {
   const calculatePriceEstimate = (duration) => {
     // Default settings: 2 speakers, 3 days turnaround, no timestamp, clean verbatim
     // Using new pricing structure
+
+    // Round up duration to nearest minute (as per new calculation)
+    const roundedDuration = Math.ceil(duration);
+
     let baseRate = 0;
     const speakers = 2;
     const turnaroundTime = '3days';
@@ -124,8 +128,8 @@ const UserDashboard = () => {
       } else if (speakers >= 3) {
         const cleanVerbatim3Speakers = {
           '3days': 1.25,
-          '1.5days': 1.2,
-          '6-12hrs': 1.5
+          '1.5days': 1.6,
+          '6-12hrs': 1.95
         };
         baseRate = cleanVerbatim3Speakers[turnaroundTime] || 1.25;
       }
@@ -133,18 +137,18 @@ const UserDashboard = () => {
       // FULL VERBATIM
       if (speakers === 2) {
         const fullVerbatim2Speakers = {
-          '3days': 1.1,
-          '1.5days': 1.4,
-          '6-12hrs': 1.7
+          '3days': 1.2,
+          '1.5days': 1.5,
+          '6-12hrs': 1.8
         };
-        baseRate = fullVerbatim2Speakers[turnaroundTime] || 1.1;
+        baseRate = fullVerbatim2Speakers[turnaroundTime] || 1.2;
       } else if (speakers >= 3) {
         const fullVerbatim3Speakers = {
-          '3days': 1.45,
-          '1.5days': 1.2,
-          '6-12hrs': 2.7
+          '3days': 1.6,
+          '1.5days': 1.95,
+          '6-12hrs': 2.3
         };
-        baseRate = fullVerbatim3Speakers[turnaroundTime] || 1.45;
+        baseRate = fullVerbatim3Speakers[turnaroundTime] || 1.6;
       }
     }
 
@@ -159,10 +163,10 @@ const UserDashboard = () => {
 
     const timestampMod = timestampRates[timestampFrequency] || 0.0;
     const rate = baseRate + timestampMod;
-    const estimatedPrice = duration * rate;
+    const estimatedPrice = roundedDuration * rate;
 
     setPriceEstimate({
-      duration,
+      duration: roundedDuration,
       rate: rate.toFixed(2),
       price: estimatedPrice.toFixed(2),
       settings: '1-2 speakers, 3 days, clean verbatim, no timestamps'
