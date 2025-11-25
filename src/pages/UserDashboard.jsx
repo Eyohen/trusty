@@ -55,10 +55,10 @@ const UserDashboard = () => {
 
     // Validate file type - check by extension (more reliable than MIME type)
     const fileExtension = file.name.split('.').pop().toLowerCase();
-    const allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'mp4', 'mpeg', 'ogg'];
+    const allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'mp4'];
 
     if (!allowedExtensions.includes(fileExtension)) {
-      alert(`Invalid file type. Please select an audio file (${allowedExtensions.join(', ').toUpperCase()})`);
+      alert(`Invalid file type. Please select an audio/video file (${allowedExtensions.join(', ').toUpperCase()})`);
       e.target.value = ''; // Reset input
       return;
     }

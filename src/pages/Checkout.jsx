@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
+import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, AlertCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { usePaystackPayment } from 'react-paystack';
@@ -317,6 +317,13 @@ const Checkout = () => {
         return;
       }
 
+      // Validate Paystack minimum transaction amount ($2.00 USD)
+      if (pricing.totalPrice < 2.00) {
+        setError('Minimum transaction amount is $2.00 USD. Please increase your order duration or select additional options.');
+        setLoading(false);
+        return;
+      }
+
       // Create order first
       console.log('Creating order...');
       const orderData = await createOrder();
@@ -328,24 +335,27 @@ const Checkout = () => {
       }
 
       console.log('Order created successfully:', orderData);
-      setPaymentReference(orderData.paymentReference);
+      const orderPaymentRef = orderData.paymentReference;
+      const orderIdForFile = orderData.order.id;
+      setPaymentReference(orderPaymentRef);
+      setOrder(orderData.order);
 
       // Small delay to ensure state is updated
       setTimeout(() => {
         try {
-          // Initialize payment with the config
+          // Initialize payment with the config using PaystackPop directly
           const paymentConfig = {
-            reference: orderData.paymentReference,
+            key: publicKey,
             email: customerInfo.email,
             amount: Math.round(pricing.totalPrice * 100), // Amount in cents for USD
             currency: 'USD',
-            publicKey: publicKey,
+            ref: orderPaymentRef,
             metadata: {
               custom_fields: [
                 {
                   display_name: "Order ID",
                   variable_name: "order_id",
-                  value: orderData.order.id
+                  value: orderIdForFile
                 },
                 {
                   display_name: "Duration",
@@ -358,17 +368,34 @@ const Checkout = () => {
                   value: customerInfo.name
                 }
               ]
-            }
+            },
+            callback: (response) => {
+              console.log('Payment successful:', response);
+              verifyPayment(orderPaymentRef, response.reference, response, orderIdForFile);
+            },
+            onClose: onPaymentClose
           };
 
-          console.log('Initializing Paystack with config:', { ...paymentConfig, publicKey: 'pk_***' });
+          console.log('Initializing Paystack with config:', { ...paymentConfig, key: 'pk_***' });
 
-          // Use the hook to initialize payment
-          const paymentInstance = usePaystackPayment(paymentConfig);
-          paymentInstance(onPaymentSuccess, onPaymentClose);
+          // Check if PaystackPop is available
+          if (!window.PaystackPop) {
+            throw new Error('PaystackPop not loaded. Please refresh the page.');
+          }
+
+          console.log('PaystackPop is available, setting up handler...');
+
+          // Use PaystackPop directly
+          const handler = window.PaystackPop.setup(paymentConfig);
+
+          console.log('Handler created, opening iframe...');
+          handler.openIframe();
+
+          console.log('Payment modal should be open now');
 
         } catch (initError) {
           console.error('Payment initialization error:', initError);
+          console.error('Error stack:', initError.stack);
           setError('Failed to open payment modal. Please try again. Error: ' + initError.message);
           setLoading(false);
         }
@@ -382,9 +409,11 @@ const Checkout = () => {
   };
 
   // Verify payment after Paystack success
-  const verifyPayment = async (paymentReference, paystackReference, paymentData) => {
+  const verifyPayment = async (paymentReference, paystackReference, paymentData, orderId) => {
     try {
       setLoading(true);
+
+      console.log('Verifying payment with refs:', { paymentReference, paystackReference, orderId });
 
       const response = await axios.post(`${URL}/api/orders/verify-payment`, {
         paymentReference,
@@ -394,18 +423,22 @@ const Checkout = () => {
         headers: getAuthHeaders()
       });
 
+      console.log('Payment verified successfully:', response.data);
+
       // Payment verified successfully
       alert('Payment successful! Your order has been created.');
-      
+
       // Navigate to file upload if there's a file, otherwise to dashboard
       if (uploadedFile) {
+        console.log('Navigating to upload-transcript with file and orderId:', orderId);
         navigate('/upload-transcript', {
           state: {
             file: uploadedFile,
-            orderId: response.data.order.id
+            orderId: orderId || response.data.order.id
           }
         });
       } else {
+        console.log('No file, navigating to dashboard');
         navigate('/user-dashboard');
       }
 
@@ -661,6 +694,19 @@ const Checkout = () => {
                 </div>
               )}
 
+              {/* Minimum Amount Warning */}
+              {pricing && pricing.totalPrice < 2.00 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    <span className="font-semibold text-yellow-800">Minimum Amount Required</span>
+                  </div>
+                  <p className="text-sm text-yellow-700">
+                    The minimum transaction amount is $2.00 USD. Please increase your order duration to at least {Math.ceil(2 / pricing.rate)} minutes or select additional options.
+                  </p>
+                </div>
+              )}
+
               <div className="bg-purple-50 rounded-lg p-4 mb-6">
                 <div className="flex items-center space-x-2 mb-2">
                   <Shield className="h-5 w-5 text-purple-600" />
@@ -673,7 +719,7 @@ const Checkout = () => {
 
               <button
                 onClick={handlePayment}
-                disabled={loading || !pricing || !isPaystackReady}
+                disabled={loading || !pricing || !isPaystackReady || (pricing && pricing.totalPrice < 2.00)}
                 className="w-full bg-purple-600 text-white py-4 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {!isPaystackReady ? (

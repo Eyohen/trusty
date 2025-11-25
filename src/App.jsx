@@ -18,6 +18,7 @@ import Checkout from './pages/Checkout';
 import AdminTranscripts from './pages/AdminTranscripts';
 import AdminLogin from './pages/AdminLogin';
 import AdminUsers from './pages/AdminUsers';
+import UploadTranscript from './pages/UploadTranscript';
 
 
 
@@ -54,6 +55,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/upload-transcript" element={<UploadTranscript />} />
 
       <Route path="/admin-login" element={<AdminLogin />} />
 
