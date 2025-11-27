@@ -408,13 +408,7 @@ const UserDashboard = () => {
                       </button>
                     )}
                     
-                    <button
-                      onClick={() => handleViewDetails(transcript)}
-                      className="text-purple-600 hover:text-purple-700 transition-colors flex items-center space-x-1"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>View</span>
-                    </button>
+                
                   </div>
                 </div>
               ))}
