@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, AlertCircle } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { usePaystackPayment } from 'react-paystack';
 import { URL } from '../url';
@@ -738,7 +738,7 @@ const Checkout = () => {
               </button>
 
               <div className="mt-4 text-center text-xs text-gray-600">
-                <p>By proceeding, you agree to our Terms of Service and Privacy Policy.</p>
+                <p>By proceeding, you agree to our <Link to="/terms-of-service" className="text-purple-600 hover:text-purple-700">Terms of Service</Link> and <Link to="/privacy-policy" className="text-purple-600 hover:text-purple-700">Privacy Policy</Link>.</p>
               </div>
             </div>
           </div>

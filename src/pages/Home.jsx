@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
 import PricingCalculator from '../components/PricingCalculator';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { nav } from 'framer-motion/client';
 import axios from 'axios';
 import { URL } from '../url';
@@ -237,10 +237,9 @@ const Home = () => {
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Help Center</li>
-                <li>Contact Us</li>
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
+                <li><a href="mailto:support@zentranscript.com" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>

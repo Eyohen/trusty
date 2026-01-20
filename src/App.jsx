@@ -6,6 +6,8 @@ import 'coinley-checkout/dist/style.css'
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PrivacyPolicy from './pages/Privacy';
+import TermsOfService from './pages/TermsOfService';
 
 
 // Admin Pages
@@ -56,6 +58,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/upload-transcript" element={<UploadTranscript />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
 
       <Route path="/admin-login" element={<AdminLogin />} />
 

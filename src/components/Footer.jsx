@@ -25,58 +25,43 @@ function Footer() {
            
           </div>
 
-          {/* Gamedey */}
+          {/* Legal */}
           <div>
-            <h3 className="text-lg font-bold mb-4">Gamedey</h3>
+            <h3 className="text-lg font-bold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-500 hover:text-white">
-                  Legal Conditions
+                <Link to="/terms-of-service" className="text-gray-500 hover:text-white">
+                  Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="text-gray-500 hover:text-white">
+                <Link to="/privacy-policy" className="text-gray-500 hover:text-white">
                   Privacy Policy
-                </Link>
-              </li>
-                 <li>
-                <Link to="/products" className="text-gray-500 hover:text-white">
-                  Cookie Policy
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Discover Gamedey */}
+          {/* Support */}
           <div>
-            <h3 className="text-lg font-bold mb-4">Discover Gamedey</h3>
+            <h3 className="text-lg font-bold mb-4">Support</h3>
            <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-500 hover:text-white">
-                  Discover Facilities
-                </Link>
+                <a href="mailto:support@zentranscript.com" className="text-gray-500 hover:text-white">
+                  Contact Us
+                </a>
               </li>
               <li>
-                <Link to="/products" className="text-gray-500 hover:text-white">
-                  Discover Coach
-                </Link>
-              </li>
-                 <li>
-                <Link to="/products" className="text-gray-500 hover:text-white">
-                  Become a Coach
-                </Link>
-              </li>
-                     <li>
-                <Link to="/products" className="text-gray-500 hover:text-white">
-                  List your Facilities
-                </Link>
+                <a href="mailto:privacy@zentranscript.com" className="text-gray-500 hover:text-white">
+                  Privacy Inquiries
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
 
-          <p className='text-center'>&copy; {currentYear} Gamedey. All rights reserved.</p>
+          <p className='text-center'>&copy; {currentYear} Zen Transcript. All rights reserved.</p>
       
       </div>
     </footer>

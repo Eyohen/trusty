@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { FileText, Eye, EyeOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { URL } from '../url';
 import { useAuth } from '../context/AuthContext';
@@ -220,8 +220,8 @@ const RegisterPage = () => {
             <div className="flex items-start">
               <input type="checkbox" className="w-4 h-4 text-[#006D5B] border-gray-300 rounded focus:ring-purple-500 mt-1" required />
               <label className="ml-2 text-sm text-gray-600">
-                I agree to the <a href="#" className="text-[#006D5B] hover:text-purple-700">Terms of Service</a> and{' '}
-                <a href="#" className="text-[#006D5B] hover:text-purple-700">Privacy Policy</a>
+                I agree to the <Link to="/terms-of-service" className="text-[#006D5B] hover:text-purple-700">Terms of Service</Link> and{' '}
+                <Link to="/privacy-policy" className="text-[#006D5B] hover:text-purple-700">Privacy Policy</Link>
               </label>
             </div>
 
