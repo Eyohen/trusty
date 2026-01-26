@@ -238,10 +238,9 @@ const Home = () => {
             <div>
               <h4 className="font-semibold mb-4">Services</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Audio Transcription</li>
-                <li>Video Transcription</li>
-                <li>Captioning</li>
-               
+                <li><Link to="/login" className="hover:text-white transition-colors cursor-pointer">Audio Transcription</Link></li>
+                <li><Link to="/login" className="hover:text-white transition-colors cursor-pointer">Video Transcription</Link></li>
+                <li><Link to="/login" className="hover:text-white transition-colors cursor-pointer">Captioning</Link></li>
               </ul>
             </div>
             
