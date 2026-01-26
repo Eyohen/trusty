@@ -175,7 +175,7 @@ const Home = () => {
                 <Globe className="h-8 w-8 text-[#006D5B]" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">English Language</h3>
-              <p className="text-gray-600">Support for english language.</p>
+              <p className="text-gray-600">First Language English Transcribers with more languages coming soon.</p>
             </div>
           </div>
         </div>
