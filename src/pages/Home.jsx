@@ -240,8 +240,8 @@ const Home = () => {
               <ul className="space-y-2 text-gray-400">
                 <li>Audio Transcription</li>
                 <li>Video Transcription</li>
-                <li>Live Captioning</li>
-                <li>Translation</li>
+                <li>Captioning</li>
+               
               </ul>
             </div>
             
