@@ -47,9 +47,9 @@ function Footer() {
             <h3 className="text-lg font-bold mb-4">Support</h3>
            <ul className="space-y-2">
               <li>
-                <a href="mailto:support@zentranscript.com" className="text-gray-500 hover:text-white">
+                <Link to="/contact" className="text-gray-500 hover:text-white">
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="mailto:privacy@zentranscript.com" className="text-gray-500 hover:text-white">

@@ -40,7 +40,7 @@ const Home = () => {
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-700 hover:text-[#006D5B] transition-colors">Features</a>
               <a href="#pricing" className="text-gray-700 hover:text-[#006D5B] transition-colors">Pricing</a>
-              <a href="#about" className="text-gray-700 hover:text-[#006D5B] transition-colors">About</a>
+              <Link to="/contact" className="text-gray-700 hover:text-[#006D5B] transition-colors">Contact</Link>
               {isAuthenticated && user ? (
                 <>
                   <span className="text-gray-700">Welcome, {user.firstName || 'User'}!</span>
@@ -84,7 +84,7 @@ const Home = () => {
             <div className="px-4 py-2 space-y-2">
               <a href="#features" className="block py-2 text-gray-700">Features</a>
               <a href="#pricing" className="block py-2 text-gray-700">Pricing</a>
-              <a href="#about" className="block py-2 text-gray-700">About</a>
+              <Link to="/contact" className="block py-2 text-gray-700">Contact</Link>
               {isAuthenticated && user ? (
                 <>
                   <p className="py-2 text-gray-700">Welcome, {user.firstName || 'User'}!</p>
@@ -174,8 +174,8 @@ const Home = () => {
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Globe className="h-8 w-8 text-[#006D5B]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Multiple Languages</h3>
-              <p className="text-gray-600">Support for 50+ languages with native speaker transcribers.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">English Language</h3>
+              <p className="text-gray-600">Support for english language.</p>
             </div>
           </div>
         </div>
@@ -190,6 +190,17 @@ const Home = () => {
           </div>
           
           <PricingCalculator />
+
+          {/* Bulk Orders Note */}
+          <div className="mt-12 text-center p-6 rounded-2xl bg-white border border-purple-200 shadow-sm">
+            <p className="text-gray-700 text-lg">
+              <span className="font-semibold">Need bulk transcription?</span> We offer special pricing for large volume orders.{' '}
+              <Link to="/contact" className="text-[#006D5B] font-semibold hover:text-purple-700 underline transition-colors">
+                Contact us
+              </Link>{' '}
+              to discuss your requirements and get a custom quote.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -237,7 +248,7 @@ const Home = () => {
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="mailto:support@zentranscript.com" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
                 <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>

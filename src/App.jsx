@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import PrivacyPolicy from './pages/Privacy';
 import TermsOfService from './pages/TermsOfService';
+import Contact from './pages/Contact';
 
 
 // Admin Pages
@@ -60,6 +61,7 @@ function App() {
         <Route path="/upload-transcript" element={<UploadTranscript />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/contact" element={<Contact />} />
 
       <Route path="/admin-login" element={<AdminLogin />} />
 
