@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, Download, Headphones } from 'lucide-react';
+import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, Download, Headphones, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { nav } from 'framer-motion/client';
 import axios from 'axios';
@@ -86,6 +86,22 @@ const AdminTranscripts = () => {
       alert('Failed to upload file');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const deleteTranscript = async (transcript) => {
+    if (!window.confirm(`Are you sure you want to delete "${transcript.title}"? This will also remove any associated files and cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${URL}/api/admin/transcripts/${transcript.id}`, {
+        headers: getAuthHeaders()
+      });
+      fetchTranscripts();
+    } catch (error) {
+      console.error('Error deleting transcript:', error);
+      alert(error.response?.data?.message || 'Failed to delete transcript');
     }
   };
 
@@ -234,6 +250,13 @@ const AdminTranscripts = () => {
                           Mark Delivered
                         </button>
                       )}
+                      <button
+                        onClick={() => deleteTranscript(transcript)}
+                        className="text-red-600 hover:text-red-900 flex items-center"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>

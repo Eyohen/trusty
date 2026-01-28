@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FileText, Upload, CheckCircle, Loader } from 'lucide-react';
 import axios from 'axios';
@@ -13,6 +13,7 @@ const UploadTranscript = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const uploadStartedRef = useRef(false);
 
   // Get file and order info from navigation state
   const file = location.state?.file;
@@ -28,6 +29,10 @@ const UploadTranscript = () => {
       navigate('/user-dashboard');
       return;
     }
+
+    // Prevent duplicate uploads (React StrictMode double-fires effects in dev)
+    if (uploadStartedRef.current) return;
+    uploadStartedRef.current = true;
 
     // Automatically upload the file when component mounts
     console.log('Starting transcript upload...');

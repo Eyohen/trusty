@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe } from 'lucide-react';
+import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { URL } from '../url';
@@ -30,11 +30,17 @@ const DashboardLayout = ({ children }) => {
       icon: <Users className="h-5 w-5" />,
       path: '/admin-users'
     },
-    { 
-      id: 'orders', 
-      label: 'Orders', 
+    {
+      id: 'orders',
+      label: 'Orders',
       icon: <Clock className="h-5 w-5" />,
       path: '/admin-orders'
+    },
+    {
+      id: 'discounts',
+      label: 'Discounts',
+      icon: <Tag className="h-5 w-5" />,
+      path: '/admin-discounts'
     },
   ];
 

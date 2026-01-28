@@ -218,26 +218,9 @@ const UserDashboard = () => {
     });
   };
 
-  const handleDownload = async (transcriptId) => {
-    try {
-      const response = await axios.get(`${URL}/api/transcripts/${transcriptId}/download`, {
-        headers: getAuthHeaders(),
-        responseType: 'blob'
-      });
-
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `transcript_${transcriptId}.txt`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download error:', error);
-      alert('Failed to download transcript');
-    }
+  const handleDownload = (transcriptId) => {
+    const token = localStorage.getItem('trusty_token');
+    window.open(`${URL}/api/transcripts/${transcriptId}/download?token=${token}`, '_blank');
   };
 
   const handleViewDetails = (transcript) => {
@@ -398,7 +381,7 @@ const UserDashboard = () => {
                       {transcript.status.charAt(0).toUpperCase() + transcript.status.slice(1)}
                     </span>
                     
-                    {transcript.status === 'completed' && (
+                    {(transcript.status === 'completed' || transcript.status === 'delivered') && (
                       <button
                         onClick={() => handleDownload(transcript.id)}
                         className="text-green-600 hover:text-green-700 transition-colors flex items-center space-x-1"

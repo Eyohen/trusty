@@ -21,6 +21,7 @@ import Checkout from './pages/Checkout';
 import AdminTranscripts from './pages/AdminTranscripts';
 import AdminLogin from './pages/AdminLogin';
 import AdminUsers from './pages/AdminUsers';
+import AdminDiscounts from './pages/AdminDiscounts';
 import UploadTranscript from './pages/UploadTranscript';
 
 
@@ -103,7 +104,16 @@ function App() {
           }
         />
 
- 
+        <Route
+          path="/admin-discounts"
+          element={
+            <AdminRoute>
+              <AdminDiscounts />
+            </AdminRoute>
+          }
+        />
+
+
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

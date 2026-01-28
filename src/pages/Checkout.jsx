@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, AlertCircle } from 'lucide-react';
+import { Upload, Clock, Users, FileText, Star, CheckCircle, ArrowRight, Menu, X, Calculator, Play, Shield, Zap, Globe, AlertCircle, Tag } from 'lucide-react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { usePaystackPayment } from 'react-paystack';
@@ -45,6 +45,10 @@ const Checkout = () => {
   const [order, setOrder] = useState(null);
   const [paymentReference, setPaymentReference] = useState(null);
   const [isPaystackReady, setIsPaystackReady] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState('');
 
   useEffect(() => {
     // Pre-fill customer info from user data
@@ -165,6 +169,76 @@ const Checkout = () => {
     }
   };
 
+  // Recalculate discount when pricing changes
+  useEffect(() => {
+    if (appliedDiscount && pricing) {
+      const orderAmount = pricing.totalPrice;
+      let discountAmt;
+
+      if (appliedDiscount.discountType === 'percentage') {
+        discountAmt = parseFloat((orderAmount * (appliedDiscount.value / 100)).toFixed(2));
+      } else {
+        discountAmt = parseFloat(Math.min(appliedDiscount.value, orderAmount).toFixed(2));
+      }
+
+      const finalAmt = parseFloat((orderAmount - discountAmt).toFixed(2));
+
+      if (finalAmt < 2.00) {
+        setDiscountError('Discount would reduce total below $2.00 minimum');
+        setAppliedDiscount(null);
+      } else {
+        setAppliedDiscount(prev => prev ? { ...prev, discountAmount: discountAmt, finalAmount: finalAmt } : null);
+      }
+    }
+  }, [pricing]);
+
+  // Apply discount code
+  const applyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError('Please enter a discount code');
+      return;
+    }
+
+    if (!pricing || pricing.totalPrice <= 0) {
+      setDiscountError('Please configure your order first');
+      return;
+    }
+
+    setDiscountLoading(true);
+    setDiscountError('');
+
+    try {
+      const response = await axios.get(`${URL}/api/orders/validate-discount`, {
+        params: { code: discountCode.trim(), amount: pricing.totalPrice },
+        headers: getAuthHeaders()
+      });
+
+      setAppliedDiscount({
+        code: response.data.discount.code,
+        discountType: response.data.discount.discountType,
+        value: response.data.discount.value,
+        discountAmount: response.data.discountAmount,
+        finalAmount: response.data.finalAmount
+      });
+      setDiscountError('');
+    } catch (error) {
+      setDiscountError(error.response?.data?.message || 'Invalid discount code');
+      setAppliedDiscount(null);
+    } finally {
+      setDiscountLoading(false);
+    }
+  };
+
+  // Remove applied discount
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+    setDiscountError('');
+  };
+
+  // Final price after discount
+  const finalPrice = appliedDiscount ? appliedDiscount.finalAmount : (pricing?.totalPrice || 0);
+
   // Update order details and recalculate pricing
   const updateOrderDetail = (field, value) => {
     setOrderDetails(prev => ({
@@ -180,14 +254,20 @@ const Checkout = () => {
       setLoading(true);
       setError('');
 
-      const response = await axios.post(`${URL}/api/orders/create`, {
+      const orderPayload = {
         duration: orderDetails.duration,
         speakers: orderDetails.speakers,
         turnaroundTime: orderDetails.turnaroundTime,
         timestampFrequency: orderDetails.timestampFrequency,
         isVerbatim: orderDetails.isVerbatim,
         customerInfo
-      }, {
+      };
+
+      if (appliedDiscount) {
+        orderPayload.discountCode = appliedDiscount.code;
+      }
+
+      const response = await axios.post(`${URL}/api/orders/create`, orderPayload, {
         headers: getAuthHeaders()
       });
 
@@ -225,7 +305,7 @@ const Checkout = () => {
     return {
       reference: paymentReference,
       email: customerInfo.email,
-      amount: Math.round(pricing.totalPrice * 100), // Amount in cents for USD
+      amount: Math.round(finalPrice * 100), // Amount in cents for USD
       currency: 'USD',
       publicKey: publicKey,
       metadata: {
@@ -318,7 +398,7 @@ const Checkout = () => {
       }
 
       // Validate Paystack minimum transaction amount ($2.00 USD)
-      if (pricing.totalPrice < 2.00) {
+      if (finalPrice < 2.00) {
         setError('Minimum transaction amount is $2.00 USD. Please increase your order duration or select additional options.');
         setLoading(false);
         return;
@@ -347,7 +427,7 @@ const Checkout = () => {
           const paymentConfig = {
             key: publicKey,
             email: customerInfo.email,
-            amount: Math.round(pricing.totalPrice * 100), // Amount in cents for USD
+            amount: Math.round(finalPrice * 100), // Amount in cents for USD
             currency: 'USD',
             ref: orderPaymentRef,
             metadata: {
@@ -687,15 +767,77 @@ const Checkout = () => {
                     <span className="text-gray-600">Rate per minute:</span>
                     <span className="font-medium">${pricing.rate}</span>
                   </div>
-                  <div className="flex justify-between text-lg font-bold text-purple-600">
-                    <span>Total:</span>
-                    <span>{formatCurrency(pricing.totalPrice)}</span>
-                  </div>
+                  {appliedDiscount ? (
+                    <>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-medium">{formatCurrency(pricing.totalPrice)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm mb-2 text-green-600">
+                        <span>Discount ({appliedDiscount.code}):</span>
+                        <span className="font-medium">-{formatCurrency(appliedDiscount.discountAmount)}</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold text-purple-600">
+                        <span>Total:</span>
+                        <span>{formatCurrency(appliedDiscount.finalAmount)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between text-lg font-bold text-purple-600">
+                      <span>Total:</span>
+                      <span>{formatCurrency(pricing.totalPrice)}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
+              {/* Discount Code Input */}
+              <div className="border-t border-gray-200 pt-4 mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Discount Code</label>
+                {appliedDiscount ? (
+                  <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                    <div className="flex items-center space-x-2">
+                      <Tag className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-700">{appliedDiscount.code}</span>
+                      <span className="text-xs text-green-600">
+                        ({appliedDiscount.discountType === 'percentage' ? `${appliedDiscount.value}% off` : `$${appliedDiscount.value} off`})
+                      </span>
+                    </div>
+                    <button
+                      onClick={removeDiscount}
+                      className="text-green-600 hover:text-red-500 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={discountCode}
+                      onChange={(e) => {
+                        setDiscountCode(e.target.value.toUpperCase());
+                        setDiscountError('');
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-mono"
+                      placeholder="Enter code"
+                    />
+                    <button
+                      onClick={applyDiscount}
+                      disabled={discountLoading || !discountCode.trim()}
+                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium disabled:opacity-50"
+                    >
+                      {discountLoading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {discountError && (
+                  <p className="mt-1 text-xs text-red-600">{discountError}</p>
+                )}
+              </div>
+
               {/* Minimum Amount Warning */}
-              {pricing && pricing.totalPrice < 2.00 && (
+              {pricing && finalPrice < 2.00 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center space-x-2 mb-2">
                     <AlertCircle className="h-5 w-5 text-yellow-600" />
@@ -719,7 +861,7 @@ const Checkout = () => {
 
               <button
                 onClick={handlePayment}
-                disabled={loading || !pricing || !isPaystackReady || (pricing && pricing.totalPrice < 2.00)}
+                disabled={loading || !pricing || !isPaystackReady || finalPrice < 2.00}
                 className="w-full bg-purple-600 text-white py-4 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {!isPaystackReady ? (
@@ -733,7 +875,7 @@ const Checkout = () => {
                     <span>Processing...</span>
                   </>
                 ) : (
-                  <span>Pay {formatCurrency(pricing?.totalPrice || 0)} with Paystack</span>
+                  <span>Pay {formatCurrency(finalPrice)} with Paystack</span>
                 )}
               </button>
 
